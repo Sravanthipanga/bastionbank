@@ -2,6 +2,8 @@
 
 *A production-grade multi-agent banking platform — reference implementation.*
 
+**Live demo:** https://bastionbank.onrender.com (Render free tier — first load after idle takes ~1 minute; seeded demo logins are in the Demo section below)
+
 A coordinator routes each customer request to a domain sub-agent (accounts,
 payments, cards, support). Agents reach bank data **only** through MCP tool
 servers behind a plain-code policy gate. PII never leaves the bank, writes go
