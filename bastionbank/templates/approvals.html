@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}BastionBank — Approvals{% endblock %}
+{% block body %}
+<h1>Human-in-the-loop approvals</h1>
+<p class="sub">Transfers over $1,000 wait here for a banker. Approving queues the job for the
+worker; rejecting cancels the transfer. (Approve/reject via API requires a banker login —
+a customer token gets HTTP 403.)</p>
+
+<div class="card">
+{% if approvals %}
+<table>
+  <tr><th>Job</th><th>Transfer</th><th>Payee</th><th>Amount</th><th>Status</th><th>Action (API)</th></tr>
+  {% for a in approvals %}
+  <tr>
+    <td class="mono">#{{ a.id }}</td>
+    <td class="mono">#{{ a.transfer.id if a.transfer else '—' }}</td>
+    <td>{{ a.transfer.payee_name if a.transfer else '—' }}</td>
+    <td>{{ a.transfer.amount_cents | money if a.transfer else '—' }}</td>
+    <td><span class="pill warn">{{ a.status }}</span></td>
+    <td class="mono">POST /api/approvals/{{ a.id }}/approve</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No transfers are waiting for approval.</p>
+{% endif %}
+</div>
+
+<h2>Dead-letter queue</h2>
+<div class="card">
+{% if dlq %}
+<table>
+  <tr><th>Job</th><th>Kind</th><th>Attempts</th><th>Last error</th></tr>
+  {% for j in dlq %}
+  <tr><td class="mono">#{{ j.id }}</td><td>{{ j.kind }}</td><td>{{ j.attempts }}</td>
+      <td class="mono">{{ j.last_error }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>The dead-letter queue is empty.</p>
+{% endif %}
+</div>
+{% endblock %}

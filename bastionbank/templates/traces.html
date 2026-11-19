@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}BastionBank — Traces{% endblock %}
+{% block body %}
+<h1>Traces</h1>
+<p class="sub">One trace per chat request: coordinator → agent → tool calls → LLM renders.</p>
+<div class="card">
+{% if traces %}
+<table>
+  <tr><th>Trace</th><th>Started</th><th>Agent</th><th>Status</th><th>Summary</th></tr>
+  {% for t in traces %}
+  <tr>
+    <td class="mono"><a href="/traces/{{ t.trace_id }}">{{ t.trace_id }}</a></td>
+    <td class="mono">{{ t.started_at }}</td>
+    <td>{{ t.agent or '—' }}</td>
+    <td><span class="pill {{ 'ok' if t.status == 'ok' else 'bad' if t.status in ('blocked','aborted','budget_exceeded') else '' }}">{{ t.status or '—' }}</span></td>
+    <td>{{ (t.summary or '')[:90] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No traces yet — send a chat message first.</p>
+{% endif %}
+</div>
+{% endblock %}

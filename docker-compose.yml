@@ -1,0 +1,37 @@
+# Production topology (correct-by-construction; the sandbox has no Docker —
+# see README "What ran where"). The app defaults to its built-in SQLite store;
+# the Postgres service below is the production store the DATABASE_URL seam in
+# bastionbank/store.py targets.
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      BASTIONBANK_DB: /data/bastionbank.db
+      DATABASE_URL: postgres://bastionbank:bastionbank@db:5432/bastionbank
+      BASTIONBANK_JWT_SECRET: ${BASTIONBANK_JWT_SECRET:-change-me-in-production}
+    volumes:
+      - app-data:/data
+    depends_on:
+      - db
+  worker:
+    build: .
+    command: python -m bastionbank.worker
+    environment:
+      BASTIONBANK_DB: /data/bastionbank.db
+    volumes:
+      - app-data:/data
+    depends_on:
+      - app
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: bastionbank
+      POSTGRES_PASSWORD: bastionbank
+      POSTGRES_DB: bastionbank
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+volumes:
+  app-data:
+  pg-data:

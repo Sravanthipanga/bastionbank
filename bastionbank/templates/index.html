@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}BastionBank — Chat console{% endblock %}
+{% block body %}
+<h1>Chat console</h1>
+<p class="sub">Multi-agent banking assistant. Pick a seeded demo login, then chat.
+Every reply shows which domain agent answered and its trace id.</p>
+
+<div class="card">
+  <div class="row">
+    <strong>Demo login:</strong>
+    <button onclick="login('maya','maya-demo-123')">Maya Chen (customer)</button>
+    <button onclick="login('jordan','jordan-demo-123')">Jordan Alvarez (customer)</button>
+    <button onclick="login('banker','banker-demo-123')">Banker (approvals)</button>
+    <span id="loginstate" class="small">not logged in</span>
+  </div>
+  <p class="small">Try: “What is my checking balance?” · “Show my payees” ·
+  “Transfer $2,500 to Maple Properties” · “Freeze my card” · “What are your fees?”</p>
+</div>
+
+<div class="card">
+  <div id="chatlog"></div>
+  <div class="row">
+    <input id="chatbox" type="text" placeholder="Ask about balances, transfers, cards, fees…"
+           onkeydown="if(event.key==='Enter')send()">
+    <button class="gold" onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+let sessionId = null;
+function token() { return localStorage.getItem('bb_token'); }
+async function login(username, password) {
+  const r = await fetch('/auth/login', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({username, password})});
+  const d = await r.json();
+  if (r.ok) {
+    localStorage.setItem('bb_token', d.access_token);
+    document.getElementById('loginstate').textContent = 'logged in as ' + d.username + ' (' + d.role + ')';
+    sessionId = null;
+    document.getElementById('chatlog').innerHTML = '';
+  } else {
+    document.getElementById('loginstate').textContent = 'login failed: ' + d.detail;
+  }
+}
+function addMsg(cls, text, meta) {
+  const log = document.getElementById('chatlog');
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.textContent = text;
+  if (meta) { const s = document.createElement('span'); s.className='meta'; s.textContent = meta; div.appendChild(s); }
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+async function send() {
+  const box = document.getElementById('chatbox');
+  const text = box.value.trim();
+  if (!text) return;
+  if (!token()) { alert('Pick a demo login first.'); return; }
+  box.value = '';
+  addMsg('user', text);
+  const r = await fetch('/chat', {method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer ' + token()},
+    body: JSON.stringify({message: text, session_id: sessionId})});
+  const d = await r.json();
+  if (!r.ok) { addMsg('agent', 'Error: ' + (d.detail || r.status)); return; }
+  sessionId = d.session_id;
+  addMsg('agent', d.reply, 'agent: ' + d.agent + ' · status: ' + d.status + ' · trace: ' + d.trace_id);
+}
+</script>
+{% endblock %}

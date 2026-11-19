@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}BastionBank — Trace {{ trace.trace_id }}{% endblock %}
+{% block body %}
+<h1>Trace <span class="mono">{{ trace.trace_id }}</span></h1>
+<p class="sub">Agent: {{ trace.agent or '—' }} · Status: {{ trace.status or '—' }} ·
+Started: <span class="mono">{{ trace.started_at }}</span></p>
+<div class="card">
+<table>
+  <tr><th>#</th><th>Span</th><th>Kind</th><th>Duration</th><th>Attributes</th></tr>
+  {% for s in trace.spans %}
+  <tr>
+    <td>{{ s.id }}</td>
+    <td class="mono">{{ s.name }}</td>
+    <td>{{ s.kind }}</td>
+    <td class="mono">{{ '%.1f' | format(s.duration_ms) }} ms</td>
+    <td class="mono">{{ s.attributes_dict }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

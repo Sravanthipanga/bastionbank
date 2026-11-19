@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}BastionBank — Costs{% endblock %}
+{% block body %}
+<h1>Cost ledger</h1>
+<p class="sub">Every LLM render is logged with estimated tokens (chars/4) and
+<strong>simulated</strong> prices. Per-session budget cap: $2.00 (simulated) by default.</p>
+<div class="card">
+{% if summary.by_model %}
+<table>
+  <tr><th>Model</th><th>Calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost (simulated)</th></tr>
+  {% for r in summary.by_model %}
+  <tr>
+    <td class="mono">{{ r.model }}</td><td>{{ r.calls }}</td>
+    <td>{{ r.in_tok }}</td><td>{{ r.out_tok }}</td>
+    <td>${{ '%.4f' | format(r.cost) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p><strong>Total: ${{ '%.4f' | format(summary.total_cost_usd) }}</strong> (simulated prices)</p>
+{% else %}
+<p>No LLM calls logged yet.</p>
+{% endif %}
+</div>
+{% endblock %}
