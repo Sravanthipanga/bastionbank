@@ -1,4 +1,5 @@
 # BastionBank
+[![CI](https://github.com/Sravanthipanga/bastionbank/actions/workflows/ci.yml/badge.svg)](https://github.com/Sravanthipanga/bastionbank/actions/workflows/ci.yml)
 
 *A production-grade multi-agent banking platform — reference implementation.*
 
